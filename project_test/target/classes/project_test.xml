@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:context="http://www.springframework.org/schema/context" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+<mule xmlns:zoho-crm="http://www.mulesoft.org/schema/mule/zoho-crm" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/zoho-crm http://www.mulesoft.org/schema/mule/zoho-crm/current/mule-zoho-crm.xsd">
  	
     <sfdc:config doc:name="Salesforce" name="Salesforce" password="Apachertr!9" securityToken="qQIu8GOhAKXxrcsvkWAagVYY4" username="rohit.poojary@eaisystems.com">
         <sfdc:connection-pooling-profile exhaustedAction="WHEN_EXHAUSTED_GROW" initialisationPolicy="INITIALISE_ONE"/>
@@ -17,6 +17,8 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
     <sfdc:config-with-oauth name="Salesforce__OAuth_v2_0" consumerKey="3MVG9ZL0ppGP5UrCp87kY3BuNXQb56Xjn_9RQmQ.wdeOlSRuoupNnNQEdkT.75QyGK3JngLFTCl_bGL8OidBz" consumerSecret="4652070064724976625" doc:name="Salesforce: OAuth v2.0">
         <sfdc:oauth-callback-config domain="localhost" localPort="9098" path="callback"/>
     </sfdc:config-with-oauth>
+    <zoho-crm:config name="ZohoCrm__Configuration" authtoken="5a385636f1510d4999c64903b9bdce95" doc:name="ZohoCrm: Configuration"/>
+    <file:connector name="File" autoDelete="true" streaming="true" validateConnections="true" doc:name="File"/>
     <batch:job name="salesforce-to-database-Batch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         
@@ -73,6 +75,30 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
         <sfdc:authorize config-ref="Salesforce__OAuth_v2_0" accessTokenUrl="https://login.salesforce.com/services/oauth2/token" authorizationUrl="https://login.salesforce.com/services/oauth2/authorize" display="PAGE" doc:name="Salesforce"/>
         <sfdc:query config-ref="Salesforce__OAuth_v2_0" query="SELECT Email,FirstName,LastModifiedDate,LastName FROM Contact" doc:name="Salesforce"/>
         <batch:execute name="salesforce-to-database-Batch" doc:name=""/>
+    </flow>
+    <flow name="project_testFlow">
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="5" startDelay="2" timeUnit="MINUTES"/>
+            <db:select config-ref="MySQL_Configuration" doc:name="Database">
+                <db:parameterized-query><![CDATA[SELECT email,first_name,last_name FROM contact]]></db:parameterized-query>
+            </db:select>
+        </poll>
+        <foreach doc:name="For Each">
+            <dw:transform-message metadata:id="fda7f91e-c140-40c9-a8be-e2206f6c0ba6" doc:name="Transform Message">
+                <dw:input-payload/>
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	"First Name": payload.first_name,
+	"Last Name": payload.last_name,
+	Email: payload.email
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <file:outbound-endpoint path="D:\Users\One\Desktop\abc" outputPattern="project.txt" connector-ref="File" responseTimeout="10000" doc:name="File"/>
+            <zoho-crm:insert-single config-ref="ZohoCrm__Configuration" module="Contacts" doc:name="ZohoCrm"/>
+        </foreach>
+        <logger message="complete" level="INFO" doc:name="Logger"/>
     </flow>
 
     

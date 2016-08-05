@@ -3,4 +3,5 @@
     <name>project_test</name>
     <description></description>
     <muleExtension name="Salesforce" qualifier="org.mule.tooling.ui.contribution.sfdc.3.5.0"/>
+    <muleExtension name="ZohoCrm" qualifier="org.mule.tooling.ui.contribution.zoho-crm.3.6.0"/>
 </mule-project>
